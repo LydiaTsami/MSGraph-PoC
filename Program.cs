@@ -20,7 +20,8 @@ namespace GraphTutorial
 
             // Check for required settings
             if (string.IsNullOrEmpty(appConfig["appId"]) ||
-                string.IsNullOrEmpty(appConfig["scopes"]))
+                string.IsNullOrEmpty(appConfig["tenantId"]) ||
+                string.IsNullOrEmpty(appConfig["clientSecret"]))
             {
                 return null;
             }
@@ -43,8 +44,6 @@ namespace GraphTutorial
             var appId = appConfig["appId"];
             var tenantId = appConfig["tenantId"];
             var clientSecret = appConfig["clientSecret"];
-            var scopesString = appConfig["scopes"];
-            var scopes = scopesString.Split(';');
 
             // Initialize the auth provider with values from appsettings.json
             IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder
