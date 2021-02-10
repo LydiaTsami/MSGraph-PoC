@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
+using Microsoft.Graph.CallRecords;
 using Microsoft.Identity.Client;
 using System;
 using System.Linq;
@@ -25,33 +26,6 @@ namespace GraphTutorial
             }
 
             return appConfig;
-        }
-
-        static string FormatDateTimeTimeZone(
-            Microsoft.Graph.DateTimeTimeZone value,
-            string dateTimeFormat)
-        {
-            // Parse the date/time string from Graph into a DateTime
-            var dateTime = DateTime.Parse(value.DateTime);
-
-            return dateTime.ToString(dateTimeFormat);
-        }
-
-        static void ListCalendarEvents(string userTimeZone, string dateTimeFormat)
-        {
-            var events = GraphHelper
-                .GetCurrentWeekCalendarViewAsync(DateTime.Today, userTimeZone)
-                .Result;
-
-            Console.WriteLine("Events:");
-
-            foreach (var calendarEvent in events)
-            {
-                Console.WriteLine($"Subject: {calendarEvent.Subject}");
-                Console.WriteLine($"  Organizer: {calendarEvent.Organizer.EmailAddress.Name}");
-                Console.WriteLine($"  Start: {FormatDateTimeTimeZone(calendarEvent.Start, dateTimeFormat)}");
-                Console.WriteLine($"  End: {FormatDateTimeTimeZone(calendarEvent.End, dateTimeFormat)}");
-            }
         }
 
         static async System.Threading.Tasks.Task Main(string[] args)
@@ -123,11 +97,13 @@ namespace GraphTutorial
                     case 2:
                         Console.WriteLine("Please input the callId");
                         string callId = Console.ReadLine();
-                        var callRecord = await GraphHelper.GetCallRecordSessions(callId);
-                        //foreach (Participant participant in callRecord.Callee.ToList())
-                        //{
-                        //    Console.WriteLine("Found participant: " + participant.DisplayName);
-                        //}
+                        var callRecord = await GraphHelper.GetCallRecord(callId != "" ? callId : "0966627d-5473-4125-8269-6633c6931c6d");
+                        foreach(IdentitySet participant in callRecord.Participants.ToList())
+                        {
+                            Console.WriteLine("Hi " + participant.User.Id);
+                            var user = await GraphHelper.GetUserAsync(participant.User.Id);
+                            Console.WriteLine("Your email is: " +user.Mail);
+                        }
                         break;
                     default:
                         Console.WriteLine("Invalid choice! Please try again.");
