@@ -62,16 +62,15 @@ namespace GraphTutorial
             }
         }
 
-        public static async Task<ICallRecordSessionsCollectionPage> GetCallRecordSessions(string callId)
+        public static async Task<CallRecord> GetCallRecordSessions(string callId)
         {
             try
             {
                 // GET /groups/{groupId}/Members
                 return await graphClient.Communications
                     .CallRecords[callId]
-                    .Sessions
                     .Request()
-                    .Expand("segments")
+                    .Expand("sessions")
                     .GetAsync();
             }
             catch (ServiceException ex)
@@ -97,5 +96,26 @@ namespace GraphTutorial
                 return null;
             }
         }
+
+
+
+        public static async Task<IUserOnlineMeetingsCollectionPage> GetMeeting(string callId)
+        {
+            try
+            {
+                // GET /communications/callRecords/{callId}
+                return await graphClient.Users["8b406a47-ed00-45cb-ad12-cd01d6143bbb"]
+                    .OnlineMeetings
+                    .Request()
+                    .Filter("JoinWebUrl eq '" + callId + "'")
+                    .GetAsync();
+            }
+            catch (ServiceException ex)
+            {
+                Console.WriteLine($"Error getting call participants: {ex.Message}");
+                return null;
+            }
+        }
+
     }
 }

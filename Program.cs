@@ -92,16 +92,38 @@ namespace GraphTutorial
                         {
                             Console.WriteLine("Found member: " + member.DisplayName);
                         }
+                        //var meeting = await GraphHelper.GetMeeting("https://teams.microsoft.com/l/meetup-join/19%3ameeting_NTg3ZGQ5YjYtNjI1Ny00ZTQ4LTg0ZWMtMmI4ZjZkYjJkNGRj%40thread.v2/0?context=%7b%22Tid%22%3a%221aed5afa-c363-478e-ae14-b73b6949addb%22%2c%22Oid%22%3a%228b406a47-ed00-45cb-ad12-cd01d6143bbb%22%7d");
                         break;
                     case 2:
                         Console.WriteLine("Please input the callId");
                         string callId = Console.ReadLine();
-                        var callRecord = await GraphHelper.GetCallRecord(callId != "" ? callId : "0966627d-5473-4125-8269-6633c6931c6d");
-                        foreach(IdentitySet participant in callRecord.Participants.ToList())
+                        //var callRecord = await GraphHelper.GetCallRecord(callId != "" ? callId : "f4ea5721-a7b5-44ee-8ceb-9dfa7a6dd41e");
+                        var callRecord = await GraphHelper.GetCallRecordSessions(callId != "" ? callId : "f4ea5721-a7b5-44ee-8ceb-9dfa7a6dd41e");
+                        var joinWebUrl = callRecord.JoinWebUrl;
+                        if (joinWebUrl == null) break;
+                        foreach (Session session in callRecord.Sessions)
                         {
-                            Console.WriteLine("Hi " + participant.User.Id);
-                            var user = await GraphHelper.GetUserAsync(participant.User.Id);
-                            Console.WriteLine("Your email is: " +user.Mail);
+                            ParticipantEndpoint caller = (ParticipantEndpoint)session.Caller;
+                            var user = await GraphHelper.GetUserAsync(caller.Identity.User.Id);
+                            //TODO - Find the mapping between this userId and the university's student ID.
+                            StudentEvent studentEvent = new StudentEvent
+                            {
+                                //TODO - Find course ID based on joinWebUrl.
+                                CourseID = "COMP0088", // Course ID Upper case.
+                                Timestamp = ((DateTimeOffset)session.StartDateTime).UtcDateTime,
+                                EventType = EventType.Attendance,
+                                ActivityType = "Meeting",
+                                ActivityName = "Weekly Lecture",
+                                Student = new Student
+                                {
+                                    Email = user.Mail,
+                                    FirstName = user.GivenName,
+                                    LastName = user.Surname,
+                                    ID = user.Id
+                                }
+                            };
+                            Console.WriteLine(studentEvent.ToString());
+                            //_eventAggregator.ProcessEvent(studentEvent);
                         }
                         break;
                     default:
